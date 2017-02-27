@@ -1,0 +1,7 @@
+TIMESTAMP = 1476803714
+SHA256 (apache-tomcat-6.0.44.tar.gz) = aab792322e75c6502675120933cbc519cfb59ac8d192f4fa103371a335708224
+SIZE (apache-tomcat-6.0.44.tar.gz) = 7065218
+SHA256 (hadoop-2.6.0-cdh5.8.2-src.tar.gz) = 48f0d4bcecba695e2be01072f446c08a5dedd2e3156720298cc92196c08cd4c1
+SIZE (hadoop-2.6.0-cdh5.8.2-src.tar.gz) = 43907685
+SHA256 (m2repo-0.0.12.tar.gz) = bb336553de4d785fb2b63511003a7df531591ed82c9df24323697d7cfabc37b0
+SIZE (m2repo-0.0.12.tar.gz) = 234829585

@@ -1,0 +1,25 @@
+--- hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-nativetask/pom.xml.orig	2015-07-21 12:23:46 UTC
++++ hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-nativetask/pom.xml
+@@ -163,7 +163,7 @@
+             <artifactId>maven-antrun-plugin</artifactId>
+             <executions>
+               <execution>
+-                <id>make</id>
++                <id>gmake</id>
+                 <phase>compile</phase>
+                 <goals>
+                   <goal>run</goal>
+@@ -183,11 +183,10 @@
+                       <arg line="${basedir}/src/ -DGENERATED_JAVAH=${project.build.directory}/native/javah -DJVM_ARCH_DATA_MODEL=${sun.arch.data.model} -DREQUIRE_SNAPPY=${require.snappy} -DCUSTOM_SNAPPY_PREFIX=${snappy.prefix} -DCUSTOM_SNAPPY_LIB=${snappy.lib} -DCUSTOM_SNAPPY_INCLUDE=${snappy.include}" />
+                     </exec>
+                     <exec executable="make" dir="${project.build.directory}/native" failonerror="true">
+-                      <arg line="VERBOSE=1" />
+                     </exec>
+                     <!-- The second make is a workaround for HADOOP-9215. It can be 
+-                      removed when version 2.6 of cmake is no longer supported . -->
+-                    <exec executable="make" dir="${project.build.directory}/native" failonerror="true"></exec>
++                      removed when version 2.6 of cmake is no longer supported .
++                    <exec executable="make" dir="${project.build.directory}/native" failonerror="true"></exec>  -->
+                   </target>
+                 </configuration>
+               </execution>

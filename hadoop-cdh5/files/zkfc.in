@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# PROVIDE: zkfc
+# REQUIRE: LOGIN
+# KEYWORD: nojail
+
+. /etc/rc.subr
+
+name=zkfc
+rcvar=zkfc_enable
+
+export HADOOP_CONF_DIR=%%HADOOP_CONF%%
+export HADOOP_PID_DIR=%%HADOOP_RUNDIR%%
+export HADOOP_IDENT_STRING=%%HADOOP_USER%%
+
+load_rc_config "${name}"
+
+: ${zkfc_enable:=NO}
+: ${zkfc_user:=%%HADOOP_USER%%}
+: ${zkfc_group:=%%HADOOP_GROUP%%}
+
+command="/usr/local/sbin/hadoop-daemon.sh"
+command_args='start zkfc'
+
+stop_cmd=zkfc_stop
+
+zkfc_stop ()
+{
+        su -m ${zkfc_user} -c "${command} stop zkfc"
+}
+
+run_rc_command "$1"

@@ -1,0 +1,5 @@
+Dynomite, inspired by Dynamo whitepaper, is a thin, distributed dynamo layer
+for different storage engines and protocols. Currently these include Redis and Memcached.
+Dynomite supports multi-datacenter replication and is designed for high availability.
+
+WWW: https://github.com/Netflix/dynomite

@@ -1,0 +1,93 @@
+#!/bin/sh
+#
+# PROVIDE: hiveserver2
+# REQUIRE: LOGIN metastore
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to run hiveserver2:
+#
+# hiveserver2_enable (bool):	Set it to "YES" to enable redis.
+# 				Default is "NO".
+# hiveserver2_profiles		(strings): Example - "foo bar"
+# 				Default is empty.
+
+. /etc/rc.subr
+
+export PATH=${PATH}:/usr/local/bin
+name="hiveserver2"
+rcvar=hiveserver2_enable
+pidfile=/var/run/hive/${name}.pid
+
+load_rc_config "${name}"
+
+: ${hiveserver2_enable:=NO}
+: ${hiveserver2_user=hive}
+
+start_cmd="hiveserver2_start"
+stop_cmd="hiveserver2_stop"
+command=/usr/local/hive/bin/hive
+
+config_file="/usr/local/etc/hive/hive-site.xml"
+command_args="--config /usr/local/etc/hive/"
+required_files="${config_file}"
+
+extra_commands="reload"
+
+procname="/usr/local/openjdk7/bin/java"
+
+_profile_exists() {
+	for _p in ${hiveserver2_profiles}; do
+		[ "${_p}" = "$1" ] && return 1;
+	done
+	return 0
+}
+
+hiveserver2_start() {
+	su -m ${hiveserver2_user} -c "${command} ${command_args} --service ${name} >& ${outfile} < /dev/null & "' echo $! '"> ${pidfile}"
+}
+
+hiveserver2_stop() {
+	rc_pid=$(check_pidfile ${pidfile} /usr/local/openjdk7/bin/java)
+	echo "Stopping hiveserver2:"
+	su -m ${hiveserver2_user} -c "kill ${rc_pid}"
+	wait_for_pids ${rc_pid}
+}
+
+if [ $# -eq 2 ]; then
+	_profile=$2
+	_profile_exists $_profile
+	_exists=$?
+	[ ${_exists} -ne 1 ] && {
+		echo "`basename /usr/local/etc/rc.d/hiveserver2`: no '$2' in 'hiveserver2_profiles'"
+		exit 1
+	};
+
+	load_rc_config "${name}_${_profile}"
+
+	echo "-- Profile: ${_profile} --"
+	config_file="/usr/local/etc/hive/${_profile}/hive-site.xml"
+	command_args="--config /usr/local/etc/hive/${_profile}/"
+	outfile="/var/log/$name-${_profile}.out"
+	pidfile=/var/run/hive/${name}-${_profile}.pid
+	required_files="${config_file}"
+	eval "hiveserver2_user=\"\${hiveserver2_${_profile}_user:-\$hiveserver2_user}\""
+	for file in \
+		/var/log/$name-${_profile}.log \
+		${outfile} \
+		${pidfile}
+	do
+		touch "${file}"
+		chown $hiveserver2_user "${file}"
+		chmod u+rw "${file}"
+	done
+elif [ -n "${hiveserver2_profiles}" ]; then
+	_swap=$*; shift; _profiles=$*
+	_profiles=${_profiles:-${hiveserver2_profiles}}
+	set -- ${_swap}
+	for _profile in ${_profiles}; do
+		/usr/local/etc/rc.d/hiveserver2 $1 ${_profile}
+	done
+	exit 0
+fi
+
+run_rc_command "$1"

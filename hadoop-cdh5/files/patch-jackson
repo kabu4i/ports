@@ -1,0 +1,154 @@
+--- hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/crypto/key/kms/KMSClientProvider.java.orig	2015-12-21 11:59:38 UTC
++++ hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/crypto/key/kms/KMSClientProvider.java
+@@ -213,7 +213,7 @@ public class KMSClientProvider extends K
+   private static void writeJson(Map map, OutputStream os) throws IOException {
+     Writer writer = new OutputStreamWriter(os);
+     ObjectMapper jsonMapper = new ObjectMapper();
+-    jsonMapper.defaultPrettyPrintingWriter().writeValue(writer, map);
++    jsonMapper.writerWithDefaultPrettyPrinter().writeValue(writer, map);
+   }
+ 
+   /**
+--- hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/util/HttpExceptionUtils.java.orig	2015-12-21 12:01:21 UTC
++++ hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/util/HttpExceptionUtils.java
+@@ -76,7 +76,7 @@ public class HttpExceptionUtils {
+     jsonResponse.put(ERROR_JSON, json);
+     ObjectMapper jsonMapper = new ObjectMapper();
+     Writer writer = response.getWriter();
+-    jsonMapper.defaultPrettyPrintingWriter().writeValue(writer, jsonResponse);
++    jsonMapper.writerWithDefaultPrettyPrinter().writeValue(writer, jsonResponse);
+     writer.flush();
+   }
+ 
+--- hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMSJSONWriter.java.orig	2015-12-21 12:02:14 UTC
++++ hadoop-common-project/hadoop-kms/src/main/java/org/apache/hadoop/crypto/key/kms/server/KMSJSONWriter.java
+@@ -64,7 +64,7 @@ public class KMSJSONWriter implements Me
+       OutputStream outputStream) throws IOException, WebApplicationException {
+     Writer writer = new OutputStreamWriter(outputStream);
+     ObjectMapper jsonMapper = new ObjectMapper();
+-    jsonMapper.defaultPrettyPrintingWriter().writeValue(writer, obj);
++    jsonMapper.writerWithDefaultPrettyPrinter().writeValue(writer, obj);
+   }
+ 
+ }
+--- hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/ClusterJspHelper.java.orig	2015-12-21 12:03:08 UTC
++++ hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/ClusterJspHelper.java
+@@ -358,8 +358,8 @@ class ClusterJspHelper {
+       nn.missingBlocksCount = getProperty(props, "NumberOfMissingBlocks")
+           .getLongValue();
+       nn.httpAddress = httpAddress.toURL();
+-      getLiveNodeCount(getProperty(props, "LiveNodes").getValueAsText(), nn);
+-      getDeadNodeCount(getProperty(props, "DeadNodes").getValueAsText(), nn);
++      getLiveNodeCount(getProperty(props, "LiveNodes").asText(), nn);
++      getDeadNodeCount(getProperty(props, "DeadNodes").asText(), nn);
+       nn.softwareVersion = getProperty(props, "SoftwareVersion").getTextValue();
+       return nn;
+     }
+@@ -373,11 +373,11 @@ class ClusterJspHelper {
+         Map<String, Map<String, String>> statusMap, String props)
+         throws IOException, MalformedObjectNameException {
+       getLiveNodeStatus(statusMap, host, getProperty(props, "LiveNodes")
+-          .getValueAsText());
++          .asText());
+       getDeadNodeStatus(statusMap, host, getProperty(props, "DeadNodes")
+-          .getValueAsText());
++          .asText());
+       getDecommissionNodeStatus(statusMap, host,
+-          getProperty(props, "DecomNodes").getValueAsText());
++          getProperty(props, "DecomNodes").asText());
+     }
+   
+     /**
+--- hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-jobclient/src/test/java/org/apache/hadoop/mapreduce/v2/TestRMNMInfo.java.orig	2015-12-21 12:05:43 UTC
++++ hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-jobclient/src/test/java/org/apache/hadoop/mapreduce/v2/TestRMNMInfo.java
+@@ -116,7 +116,7 @@ public class TestRMNMInfo {
+       Assert.assertNotNull(n.get("HostName"));
+       Assert.assertNotNull(n.get("Rack"));
+       Assert.assertTrue("Node " + n.get("NodeId") + " should be RUNNING",
+-              n.get("State").getValueAsText().contains("RUNNING"));
++              n.get("State").asText().contains("RUNNING"));
+       Assert.assertNotNull(n.get("NodeHTTPAddress"));
+       Assert.assertNotNull(n.get("LastHealthUpdate"));
+       Assert.assertNotNull(n.get("HealthReport"));
+@@ -124,10 +124,10 @@ public class TestRMNMInfo {
+       Assert.assertNotNull(n.get("NumContainers"));
+       Assert.assertEquals(
+               n.get("NodeId") + ": Unexpected number of used containers",
+-              0, n.get("NumContainers").getValueAsInt());
++              0, n.get("NumContainers").asInt());
+       Assert.assertEquals(
+               n.get("NodeId") + ": Unexpected amount of used memory",
+-              0, n.get("UsedMemoryMB").getValueAsInt());
++              0, n.get("UsedMemoryMB").asInt());
+       Assert.assertNotNull(n.get("AvailableMemoryMB"));
+     }
+   }
+@@ -153,7 +153,7 @@ public class TestRMNMInfo {
+       Assert.assertNotNull(n.get("HostName"));
+       Assert.assertNotNull(n.get("Rack"));
+       Assert.assertTrue("Node " + n.get("NodeId") + " should be RUNNING",
+-              n.get("State").getValueAsText().contains("RUNNING"));
++              n.get("State").asText().contains("RUNNING"));
+       Assert.assertNotNull(n.get("NodeHTTPAddress"));
+       Assert.assertNotNull(n.get("LastHealthUpdate"));
+       Assert.assertNotNull(n.get("HealthReport"));
+--- hadoop-project/pom.xml.orig	2015-12-21 12:09:05 UTC
++++ hadoop-project/pom.xml
+@@ -62,7 +62,7 @@
+     <jersey.version>1.9</jersey.version>
+ 
+     <!-- jackson versions -->
+-    <jackson.version>1.8.8</jackson.version>
++    <jackson.version>1.9.13</jackson.version>
+     <jackson2.version>2.2.3</jackson2.version>
+ 
+     <!-- ProtocolBuffer version, used to verify the protoc version and -->
+--- hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/state/StateDeserializer.java.orig	2015-12-21 12:10:53 UTC
++++ hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/state/StateDeserializer.java
+@@ -24,7 +24,7 @@ import org.codehaus.jackson.JsonParser;
+ import org.codehaus.jackson.JsonProcessingException;
+ import org.codehaus.jackson.map.DeserializationContext;
+ import org.codehaus.jackson.map.ObjectMapper;
+-import org.codehaus.jackson.map.deser.StdDeserializer;
++import org.codehaus.jackson.map.deser.std.StdDeserializer;
+ import org.codehaus.jackson.node.ObjectNode;
+ 
+ /**
+@@ -56,4 +56,4 @@ public class StateDeserializer extends S
+     
+     return new StatePair(state);
+   }
+-}
+\ No newline at end of file
++}
+--- hadoop-tools/hadoop-sls/src/main/java/org/apache/hadoop/yarn/sls/RumenToSLSConverter.java.orig	2015-12-21 12:11:32 UTC
++++ hadoop-tools/hadoop-sls/src/main/java/org/apache/hadoop/yarn/sls/RumenToSLSConverter.java
+@@ -124,7 +124,7 @@ public class RumenToSLSConverter {
+       Writer output = new FileWriter(outputFile);
+       try {
+         ObjectMapper mapper = new ObjectMapper();
+-        ObjectWriter writer = mapper.defaultPrettyPrintingWriter();
++        ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+         Iterator<Map> i = mapper.readValues(
+                 new JsonFactory().createJsonParser(input), Map.class);
+         while (i.hasNext()) {
+@@ -145,7 +145,7 @@ public class RumenToSLSConverter {
+     Writer output = new FileWriter(outputFile);
+     try {
+       ObjectMapper mapper = new ObjectMapper();
+-      ObjectWriter writer = mapper.defaultPrettyPrintingWriter();
++      ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+       for (Map.Entry<String, Set<String>> entry : rackNodeMap.entrySet()) {
+         Map rack = new LinkedHashMap();
+         rack.put("rack", entry.getKey());
+--- hadoop-yarn-project/hadoop-yarn/hadoop-yarn-common/src/main/java/org/apache/hadoop/yarn/util/timeline/TimelineUtils.java.orig	2015-12-21 12:13:09 UTC
++++ hadoop-yarn-project/hadoop-yarn/hadoop-yarn-common/src/main/java/org/apache/hadoop/yarn/util/timeline/TimelineUtils.java
+@@ -77,7 +77,7 @@ public class TimelineUtils {
+   public static String dumpTimelineRecordtoJSON(Object o, boolean pretty)
+       throws JsonGenerationException, JsonMappingException, IOException {
+     if (pretty) {
+-      return mapper.defaultPrettyPrintingWriter().writeValueAsString(o);
++      return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(o);
+     } else {
+       return mapper.writeValueAsString(o);
+     }

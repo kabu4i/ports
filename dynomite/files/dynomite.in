@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# PROVIDE: dynomite
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to run dynomite:
+#
+# dynomite_enable (bool):    Set it to "YES" to enable redis.
+#                               Default is "NO".
+# dynomite_profiles          (strings): Example - "foo bar"
+#                               Default is empty.
+
+. /etc/rc.subr
+
+export PATH=${PATH}:/usr/local/sbin
+name="dynomite"
+rcvar=dynomite_enable
+
+load_rc_config "${name}"
+
+
+: ${dynomite_enable="NO"}
+: ${dynomite_conffile="/usr/local/etc/dynomite.yml"}
+: ${dynomite_logfile="/var/log/dynomite.log"}
+: ${dynomite_pidfile="/var/run/${name}.pid"}
+: ${dynomite_procname="${command}"}
+
+command=/usr/local/sbin/dynomite
+command_args="--daemonize --output=${dynomite_logfile} --conf-file=${dynomite_conffile} --pid-file=${dynomite_pidfile}"
+
+run_rc_command "$1"

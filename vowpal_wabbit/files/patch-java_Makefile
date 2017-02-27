@@ -1,0 +1,71 @@
+--- java/Makefile.orig	2016-12-08 08:45:39 UTC
++++ java/Makefile
+@@ -1,17 +1,16 @@
+-ifeq ($(JAVA_HOME),)
+-  $(warning No JAVA_HOME found, JNI building will fail.  Please set JAVA_HOME when using JNI)
+-  exit 1
+-endif
+-
+-VWLIBS := -L../vowpalwabbit -l vw
+-STDLIBS = $(BOOST_LIBRARY) $(LIBS)
++JAVA_HOME=/usr/local/openjdk7
++CXX = c++
++FLAGS = -fPIC -std=gnu++11
++INCLUDES = -I/usr/local/include
++LIBS = -L/usr/local/lib -lboost_program_options
+ JAVA_INCLUDE = -I $(JAVA_HOME)/include
++UNAME = $(shell uname)
+ 
+ ifeq ($(UNAME), Linux)
+   JAVA_INCLUDE += -I $(JAVA_HOME)/include/linux
+ endif
+ ifeq ($(UNAME), FreeBSD)
+-  JAVA_INCLUDE += -I $(JAVA_HOME)/include/linux
++  JAVA_INCLUDE += -I $(JAVA_HOME)/include/freebsd
+ endif
+ ifeq "CYGWIN" "$(findstring CYGWIN,$(UNAME))"
+   JAVA_INCLUDE += -I $(JAVA_HOME)/include/linux
+@@ -23,32 +22,28 @@ endif
+ jni_SRCS = $(shell find src/main/c++ -name "*.cc")
+ jni_OBJS = $(jni_SRCS:.cc=.o)
+ 
+-all:
+-	cd ..; $(MAKE)
+ 
+-test:
+-	cd ..; $(MAKE) test
++default: jar
+ 
+-things: pom_version target/vw_jni.lib
++jar: target/vw-jni-8.1.1-SNAPSHOT.jar
+ 
+-pom_version: pom.xml
+-	ver=$$(grep AC_INIT ../configure.ac | cut -d '[' -f 3 | cut -d ']' -f 1) && \
+-	newVer=$$(perl -e "@a=split('\.', '$$ver'); \$$a[2]++; print(join('.', @a))") && \
+-	perl -pi -e "s/(\s*)<version>.*-SNAPSHOT/\1<version>$$newVer-SNAPSHOT/" pom.xml
++target/vw-jni-8.1.1-SNAPSHOT.jar: target/vw_jni.lib
++	mvn -Dmaven.repo.local=../../.m2 package
+ 
+-target/vw_jni.lib: $(jni_OBJS) ../vowpalwabbit/main.o ../vowpalwabbit/libvw.a ../vowpalwabbit/liballreduce.a
+-	mkdir -p target;
+-	$(CXX) -shared $(FLAGS) -o $@ $^ $(VWLIBS) $(STDLIBS) $(JAVA_INCLUDE)
++target/vw_jni.lib: $(jni_OBJS) ../vowpalwabbit/vw-main.o ../vowpalwabbit/.libs/libvw.a ../vowpalwabbit/.libs/liballreduce.a
++	mkdir -p target
++	$(CXX) $(FLAGS) -shared -o $@ $^ $(INCLUDES) $(JAVA_INCLUDE) $(LIBS)
+ 
+ %.o: %.cc  %.h
+-	$(CXX) $(FLAGS) -c $< -o $@ $(JAVA_INCLUDE)
++	$(CXX) $(FLAGS) -c $< -o $@ $(INCLUDES) $(JAVA_INCLUDE)
+ 
+ %.o: %.cc
+-	$(CXX) $(FLAGS) -c $< -o $@ $(JAVA_INCLUDE)
++	$(CXX) $(FLAGS) -c $< -o $@ $(INCLUDES) $(JAVA_INCLUDE)
+ 
+ 	-include $(jni_SRCS:.cc=.o)
+ 
+ .PHONY: clean
+ clean:
+-	rm -f target/vw_jni.lib
++	mvn -Dmaven.repo.local=../../.m2 clean 
++	rm -rf target
+ 	rm -f $(jni_SRCS:.cc=.o)

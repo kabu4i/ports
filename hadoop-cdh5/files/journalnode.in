@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# PROVIDE: journalnode
+# REQUIRE: LOGIN
+# KEYWORD: nojail
+
+. /etc/rc.subr
+
+name=journalnode
+rcvar=journalnode_enable
+
+export HADOOP_CONF_DIR=%%HADOOP_CONF%%
+export HADOOP_PID_DIR=%%HADOOP_RUNDIR%%
+export HADOOP_IDENT_STRING=%%HADOOP_USER%%
+
+load_rc_config "${name}"
+
+: ${journalnode_enable:=NO}
+: ${journalnode_user:=%%HADOOP_USER%%}
+: ${journalnode_group:=%%HADOOP_GROUP%%}
+
+command="/usr/local/sbin/hadoop-daemon.sh"
+command_args='start journalnode'
+
+stop_cmd=journalnode_stop
+
+journalnode_stop ()
+{
+        su -m ${journalnode_user} -c "${command} stop journalnode"
+}
+
+run_rc_command "$1"

@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# $FreeBSD: head/devel/hive/files/metastore.in 384665 2015-04-24 15:59:14Z demon $
+#
+# PROVIDE: metastore
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# metastore_enable (bool):      Set to NO by default.
+#                               Set it to YES to enable Hive metastore service.
+
+. /etc/rc.subr
+
+export PATH=${PATH}:/usr/local/bin
+name=metastore
+rcvar=metastore_enable
+pidfile=/var/run/hive/${name}.pid
+
+load_rc_config "${name}"
+
+: ${metastore_enable:=NO}
+
+start_cmd="metastore_start"
+stop_cmd="metastore_stop"
+command="/usr/local/hive/bin/hive"
+
+command_args="--config /usr/local/etc/hive/"
+
+procname="/usr/local/openjdk7/bin/java"
+
+metastore_start() {
+	if [ `pgrep -f org.apache.hadoop.hive.metastore.HiveMetaStore` ] ; then
+		echo "Sorry, metastore daemon is already running (`pgrep -f org.apache.hadoop.hive.metastore.HiveMetaStore`)"
+	else
+#		JAVA_HOME=/usr/local/openjdk7 \
+		HADOOP_OPTS="-Dhive.log.dir=/var/log -Dhive.log.file=metastore.log -Dhive.log.threshold=INFO" \
+		$command $command_args --service ${name} > /var/log/$name.out 2>&1 < /dev/null & echo $! > $pidfile
+	fi
+}
+
+metastore_stop() {
+	rc_pid=$(check_pidfile ${pidfile} /usr/local/openjdk7/bin/java)
+	if [ -n "$rc_pid" ]; then
+		while [ `pgrep -F ${pidfile}` ] ; do
+			kill $rc_pid
+		done
+	fi
+}
+
+run_rc_command "$1"

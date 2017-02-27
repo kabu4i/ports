@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# PROVIDE: relay
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to run relay:
+#
+# relay_enable (bool):    Set it to "YES" to enable redis.
+#                               Default is "NO".
+# relay_profiles          (strings): Example - "foo bar"
+#                               Default is empty.
+
+. /etc/rc.subr
+
+export PATH=${PATH}:/usr/local/bin
+name="relay"
+rcvar=relay_enable
+
+load_rc_config "${name}"
+
+command=/usr/local/bin/relay
+
+: ${relay_enable="NO"}
+: ${relay_logfile="/var/log/${name}.log"}
+: ${relay_pidfile="/var/run/${name}.pid"}
+: ${relay_procname="${command}"}
+: ${config_file="/usr/local/etc/relay.conf"}
+
+command_args="-p 2013 -f ${config_file} -w 4 -l ${relay_logfile} -P ${relay_pidfile} -D"
+
+run_rc_command "$1"

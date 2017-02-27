@@ -1,0 +1,11 @@
+--- java/pom.xml.orig	2016-12-08 08:45:39 UTC
++++ java/pom.xml
+@@ -4,7 +4,7 @@
+ 
+     <groupId>com.github.johnlangford</groupId>
+     <artifactId>vw-jni</artifactId>
+-    <version>8.2.2-SNAPSHOT</version>
++    <version>8.3.0</version>
+     <packaging>jar</packaging>
+     <name>Vowpal Wabbit JNI Layer</name>
+     <description>

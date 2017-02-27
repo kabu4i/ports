@@ -1,0 +1,5 @@
+TIMESTAMP = 1481797121
+SHA256 (m2_vowpal_wabbit.tar.gz) = d9014c816388fc3bf92cf0a347af88e316ed112f5fc3c5d15725773d1a31b954
+SIZE (m2_vowpal_wabbit.tar.gz) = 20694424
+SHA256 (vowpal_wabbit-8.3.0.tar.gz) = da1607971a6e22ddd11e9dfb19b73f357d9aa24ceb66c50788d3eabda1086c2c
+SIZE (vowpal_wabbit-8.3.0.tar.gz) = 14364399

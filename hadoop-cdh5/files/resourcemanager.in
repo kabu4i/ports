@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# PROVIDE: resourcemanager
+# REQUIRE: LOGIN
+# KEYWORD: nojail
+
+. /etc/rc.subr
+
+name=resourcemanager
+rcvar=resourcemanager_enable
+export HADOOP_CONF_DIR=%%HADOOP_CONF%%
+export HADOOP_PID_DIR=%%HADOOP_RUNDIR%%
+export HADOOP_IDENT_STRING=%%HADOOP_USER%%
+
+load_rc_config "${name}"
+
+: ${resourcemanager_enable:=NO}
+: ${resourcemanager_user:=%%HADOOP_USER%%}
+: ${resourcemanager_group:=%%HADOOP_GROUP%%}
+
+command="/usr/local/sbin/yarn-daemon.sh"
+command_args='start resourcemanager'
+
+stop_cmd=resourcemanager_stop
+
+resourcemanager_stop ()
+{
+        su -m ${jresourcemanager_user} -c "${command} stop resourcemanager"
+}
+
+run_rc_command "$1"

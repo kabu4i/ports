@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# PROVIDE: nodemanager
+# REQUIRE: LOGIN
+# KEYWORD: nojail
+
+. /etc/rc.subr
+
+name=nodemanager
+rcvar=nodemanager_enable
+
+export HADOOP_CONF_DIR=%%HADOOP_CONF%%
+export HADOOP_PID_DIR=%%HADOOP_RUNDIR%%
+export HADOOP_IDENT_STRING=%%HADOOP_USER%%
+
+load_rc_config "${name}"
+
+: ${nodemanager_enable:=NO}
+: ${nodemanager_user:=%%HADOOP_USER%%}
+: ${nodemanager_group:=%%HADOOP_GROUP%%}
+
+command="/usr/local/sbin/yarn-daemon.sh"
+command_args='start nodemanager'
+
+stop_cmd=nodemanager_stop
+
+nodemanager_stop ()
+{
+        su -m ${nodemanager_user} -c "${command} stop nodemanager"
+}
+
+run_rc_command "$1"

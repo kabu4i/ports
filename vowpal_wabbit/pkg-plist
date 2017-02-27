@@ -1,0 +1,10 @@
+bin/active_interactor83
+bin/ezexample_predict83
+bin/ezexample_train83
+bin/library_example83
+bin/spanning_tree83
+bin/vw83
+lib/pkgconfig/libvw.pc
+lib/pkgconfig/libvw_c_wrapper.pc
+lib/vw-jni-8.3.0-javadoc.jar
+lib/vw-jni-8.3.0.jar

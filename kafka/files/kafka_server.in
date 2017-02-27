@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# PROVIDE: kafka_server
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to run kafka_server:
+#
+# kafka_server_enable (bool):    Set it to "YES" to enable redis.
+#                               Default is "NO".
+# kafka_server_profiles          (strings): Example - "foo bar"
+#                               Default is empty.
+
+. /etc/rc.subr
+
+export PATH=${PATH}:/usr/local/sbin
+export JAVA_HOME=/usr/local/openjdk7
+name="kafka_server"
+rcvar=kafka_server_enable
+
+load_rc_config "${name}"
+
+: ${command_interpreter_execution="/usr/local/openjdk7/bin/java"}
+: ${kafka_server_enable="NO"}
+: ${kafka_server_conf="/usr/local/kafka/config/server.properties"}
+: ${kafka_server_pidfile="/var/run/${name}.pid"}
+: ${kafka_server_procname="${command}"}
+: ${kafka_server_flags:="-daemon"}
+
+command=/usr/local/kafka/bin/kafka-server-start.sh
+
+stop_cmd="kafka_server_stop"
+start_cmd="kafka_server_start"
+status_precmd=find_pid
+
+kafka_server_start()
+{
+        echo starting kafka_server;
+        ${command} -daemon /usr/local/kafka/config/server.properties
+}
+
+kafka_server_stop()
+{
+        echo stopping kafka_server;
+        kill -15 `cat /var/run/kafka_server.pid`
+   
+}
+
+find_pid () {
+  rc_pid=$(check_pidfile $kafka_server_pidfile $command_interpreter_execution)
+}
+
+run_rc_command "$1"

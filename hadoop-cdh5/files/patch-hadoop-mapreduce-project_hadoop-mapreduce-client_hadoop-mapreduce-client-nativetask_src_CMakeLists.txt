@@ -1,0 +1,79 @@
+--- hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-nativetask/src/CMakeLists.txt.orig	2015-07-21 12:26:57 UTC
++++ hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-nativetask/src/CMakeLists.txt
+@@ -102,13 +102,13 @@ SET(CMAKE_FIND_LIBRARY_SUFFIXES STORED_C
+ 
+ INCLUDE(CheckFunctionExists)
+ INCLUDE(CheckCSourceCompiles)
+-#INCLUDE(CheckLibraryExists)
++INCLUDE(CheckLibraryExists)
+ INCLUDE(CheckIncludeFiles)
+ #CHECK_FUNCTION_EXISTS(sync_file_range HAVE_SYNC_FILE_RANGE)
+ #CHECK_FUNCTION_EXISTS(posix_fadvise HAVE_POSIX_FADVISE)
+-#CHECK_LIBRARY_EXISTS(dl dlopen "" NEED_LINK_DL)
++CHECK_LIBRARY_EXISTS(dl dlopen "" NEED_LINK_DL)
+ CHECK_INCLUDE_FILES(fcntl.h HAVE_FCNTL_H)
+-CHECK_INCLUDE_FILES(malloc.h HAVE_MALLOC_H)
++CHECK_INCLUDE_FILES(sys/malloc.h HAVE_MALLOC_H)
+ CHECK_INCLUDE_FILES(mach/mach.h HAVE_MACH_MACH_H)
+ CHECK_INCLUDE_FILES(memory.h HAVE_MEMORY_H)
+ CHECK_INCLUDE_FILES(stddef.h HAVE_STDDEF_H)
+@@ -162,17 +162,20 @@ include_directories(
+ # add gtest as system library to suppress gcc warnings
+ include_directories(SYSTEM ${D}/gtest/include)
+ 
+-
+ SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+ 
+-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
++if (NEED_LINK_DL)
++   set(LIB_DL dl)
++endif (NEED_LINK_DL)
++
++if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin|FreeBSD")
+     # macosx does not have -lrt
+-    set(NT_DEPEND_LIBRARY dl pthread z ${SNAPPY_LIBRARY} ${JAVA_JVM_LIBRARY})
++    set(NT_DEPEND_LIBRARY execinfo pthread z ${SNAPPY_LIBRARY} ${JAVA_JVM_LIBRARY})
+     set(SYSTEM_MAC TRUE)
+-else (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+-    set(NT_DEPEND_LIBRARY dl rt pthread z ${SNAPPY_LIBRARY} ${JAVA_JVM_LIBRARY})
++else (${CMAKE_SYSTEM_NAME} MATCHES "Darwin|FreeBSD")
++    set(NT_DEPEND_LIBRARY rt execinfo pthread z ${SNAPPY_LIBRARY} ${JAVA_JVM_LIBRARY})
+     set(SYSTEM_MAC FALSE)
+-endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
++endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin|FreeBSD")
+ 
+ configure_file(main/native/test.sh test/test.sh)
+ 
+@@ -216,10 +219,17 @@ add_dual_library(nativetask
+     ${D}/src/util/WritableUtils.cc
+ )
+ 
+-target_link_libraries(nativetask ${NT_DEPEND_LIBRARY})
++target_link_libraries(nativetask ${LIB_DL} ${NT_DEPEND_LIBRARY})
+ 
+ add_library(gtest ${D}/gtest/gtest-all.cc)
+-set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-w")
++
++IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin|FreeBSD")
++    # macos clang with libc++ does not have tr1/tuple, just tuple
++    SET_TARGET_PROPERTIES(gtest PROPERTIES COMPILE_FLAGS "-DGTEST_USE_OWN_TR1_TUPLE=1 -w")
++ELSE (${CMAKE_SYSTEM_NAME} MATCHES "Darwin|FreeBSD")
++    SET_TARGET_PROPERTIES(gtest PROPERTIES COMPILE_FLAGS "-w")
++ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin|FreeBSD")
++
+ add_executable(nttest
+     ${D}/test/lib/TestByteArray.cc
+     ${D}/test/lib/TestByteBuffer.cc
+@@ -248,12 +258,6 @@ add_executable(nttest
+     ${D}/test/TestMain.cc
+     ${D}/test/test_commons.cc)
+ 
+-
+-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+-    # macos clang with libc++ does not have tr1/tuple, just tuple
+-    SET_TARGET_PROPERTIES(nttest PROPERTIES COMPILE_FLAGS "-DGTEST_USE_OWN_TR1_TUPLE=1")
+-ENDIF()
+-
+ target_link_libraries(nttest
+      nativetask_static
+      gtest

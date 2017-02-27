@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# PROVIDE: namenode
+# REQUIRE: LOGIN
+# KEYWORD: nojail 
+
+. /etc/rc.subr
+
+name=namenode
+rcvar=namenode_enable
+
+export HADOOP_CONF_DIR=%%HADOOP_CONF%%
+export HADOOP_PID_DIR=%%HADOOP_RUNDIR%%
+export HADOOP_IDENT_STRING=%%HADOOP_USER%%
+
+load_rc_config "${name}"
+
+: ${namenode_enable:=NO}
+: ${namenode_user:=%%HADOOP_USER%%}
+: ${namenode_group:=%%HADOOP_GROUP%%}
+
+command="/usr/local/sbin/hadoop-daemon.sh"
+command_args='start namenode'
+
+stop_cmd=namenode_stop
+
+namenode_stop ()
+{
+        su -m ${namenode_user} -c "${command} stop namenode"
+}
+
+run_rc_command "$1"
+
